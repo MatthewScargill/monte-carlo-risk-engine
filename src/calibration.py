@@ -29,9 +29,9 @@ def to_returns(prices, method="log", dropna=True): # dropna to remove nan return
 
 def ewma_cov(returns, lam=0.94): 
     """
-    Produce estimated 'Exponentially Weighted Moving Average' (EMWA) covariance matrix.
+    Produce 'Exponentially Weighted Moving Average' (EMWA) covariance matrix.
     Cov ≈ (1-λ) * Σ_{i=0}^{T-1} λ^i * (r_{t-i}-μ)(r_{t-i}-μ)^T
-    Idea: put greater importance on newer events (eg. stops incoming crisis data being dampened by long stability phase)
+    Idea: Put greater importance on newer events (eg. stops incoming crisis data being dampened by long stability phase)
 
     returns: DataFrame of returns (T x N)
     lam    : decay parameter in (0,1). Higher = longer memory. 
@@ -53,3 +53,16 @@ def ewma_cov(returns, lam=0.94):
     cov = (Xw.T @ xc)                          
 
     return cov
+
+def diagonal_shrinkage(cov, alpha):
+    """ 
+    Simple diagonal shrinkage:
+        Σ_shrunk = (1-α) Σ + α diag(Σ)
+    Idea: Since the off diagonal correlations are most sensitive and likely to be
+        wrong with limited data, dampen their influence.
+    """
+    if not (0.0 <= alpha <= 1.0):
+        raise ValueError("shrinkage alpha must be in [0,1]")
+    d = np.diag(np.diag(cov))
+    return (1.0 - alpha) * cov + alpha * d
+
