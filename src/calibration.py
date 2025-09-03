@@ -66,3 +66,4 @@ def diagonal_shrinkage(cov, alpha):
     d = np.diag(np.diag(cov))
     return (1.0 - alpha) * cov + alpha * d
 
+
