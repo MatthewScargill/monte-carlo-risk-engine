@@ -27,3 +27,29 @@ def to_returns(prices, method="log", dropna=True): # dropna to remove nan return
 
     return rets.dropna(how="all") if dropna else rets 
 
+def ewma_cov(returns, lam=0.94): 
+    """
+    Produce estimated 'Exponentially Weighted Moving Average' (EMWA) covariance matrix.
+    Cov ≈ (1-λ) * Σ_{i=0}^{T-1} λ^i * (r_{t-i}-μ)(r_{t-i}-μ)^T
+    Idea: put greater importance on newer events (eg. stops incoming crisis data being dampened by long stability phase)
+
+    returns: DataFrame of returns (T x N)
+    lam    : decay parameter in (0,1). Higher = longer memory. 
+        lam = 0.94 is industry standard for short terms - range up to 0.97.
+
+    Returns: N x N numpy array covariance.
+    """
+    x = returns.values 
+    T, N = x.shape # rows: T = number of days, columns: N = assets
+
+    mu = np.nanmean(x, axis=0, keepdims=True)  
+    xc = x - mu # remove the mean to isolate fluctuations                             
+
+    idx = np.arange(T-1, -1, -1)
+    w = (1 - lam) * (lam ** idx) # add weighting scheme - favours newer data
+    w = w / w.sum() # normalise!                           
+
+    Xw = xc * w[:, None] # weight scaling                      
+    cov = (Xw.T @ xc)                          
+
+    return cov
