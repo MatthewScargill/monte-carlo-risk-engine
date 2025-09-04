@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from scipy import stats
 
 def to_returns(prices, method="log", dropna=True): # dropna to remove nan returns ( if diff(0))
     """
@@ -57,7 +56,7 @@ def ewma_cov(returns, lam=0.94):
 
 def diagonal_shrinkage(cov, alpha):
     """ 
-    Simple diagonal shrinkage:
+    Implement simple diagonal shrinkage:
 
     Σ_shrunk = (1-α) Σ + α diag(Σ)
     Idea: Since the off diagonal correlations are most sensitive and likely to be
@@ -81,7 +80,7 @@ def estimate_mean_cov(returns, cov_method="standard", lam=0.94, shrinkage_alpha=
     cov_method: 'standard' (sample covariance) or 'ewma' (Exponentially Weighted Moving Average covariance)
     lam: EWMA decay λ if cov_method='ewma'
     shrinkage_alpha: optional diagonal shrinkage α in [0,1]
-    ddof           : degrees of freedom for sample covariance (default 1)
+    ddof: degrees of freedom for sample covariance (default 1)
 
     Returns: (mu, Sigma) where
         mu    : pd.Series of mean returns by asset
