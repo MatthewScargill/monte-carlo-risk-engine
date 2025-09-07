@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+# setting to returns allows for more scalability + easier to work with
 def to_returns(prices, method="log", dropna=True): # dropna to remove nan returns ( if diff(0))
     """
     Convert prices (£) to returns (%).
@@ -26,6 +27,7 @@ def to_returns(prices, method="log", dropna=True): # dropna to remove nan return
 
     return rets.dropna(how="all") if dropna else rets 
 
+# much more responsive covariance
 def ewma_cov(returns, lam=0.94): 
     """
     Produce 'Exponentially Weighted Moving Average' (EMWA) covariance matrix.
@@ -54,6 +56,8 @@ def ewma_cov(returns, lam=0.94):
 
     return cov
 
+
+# Some matrix conditioning
 def diagonal_shrinkage(cov, alpha):
     """ 
     Implement simple diagonal shrinkage:
@@ -72,6 +76,33 @@ def diagonal_shrinkage(cov, alpha):
     d = np.diag(np.diag(cov))
     return (1.0 - alpha) * cov + alpha * d
 
+# have a bit more because you're special
+def ensure_posdef(Sigma, jitter=1e-10, max_tries=6):
+    """
+    Make covariance PSD for Cholesky decomp by adding jitter to diagonal if needed.
+    Cholesky decomp required for Monte Carlo (avoids blow up).
+
+    - Sigma: pd.DataFrame covariance matrix
+    - jitter: small correction
+
+    Returns: lower triangular Cholesky factor for MC simulation
+    """
+    S = np.array(Sigma, dtype=float)
+    for k in range(max_tries):
+        try:
+            L = np.linalg.cholesky(S)
+            return L
+        except np.linalg.LinAlgError:
+            S = S + np.eye(S.shape[0]) * (jitter * (10 ** k))
+
+    vals, vecs = np.linalg.eigh(S)
+    vals = np.clip(vals, 1e-12, None) # clip just in case 
+    S_fixed = (vecs * vals) @ vecs.T
+
+    return np.linalg.cholesky(S_fixed)
+
+
+# here we have the big bad callable 
 def estimate_mean_cov(returns, cov_method="standard", lam=0.94, shrinkage_alpha=None, ddof=1):
     """
     Estimate mean vector and covariance matrix.
