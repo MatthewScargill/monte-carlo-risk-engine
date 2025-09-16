@@ -4,8 +4,8 @@ import numpy as np
 from calibration import *
 from var_es import *
 
-# load in CSVs and run calibrate
 df = pd.read_csv("data/AAPL_SIM.csv", parse_dates=["Date"]).set_index("Date")
+# load in CSVs and run calibrate
 prices = df[["Adj Close"]]          # shape (T, 1)
 rets = to_returns(prices, method="log")
 mu, Sigma = estimate_mean_cov(rets, cov_method="ewma", lam=0.94)
