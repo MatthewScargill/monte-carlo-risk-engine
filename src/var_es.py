@@ -56,6 +56,28 @@ def parametric_var_es_student(mu_p, sigma_p, df=7.0, alpha=0.99):
     es = -(mu_p + sigma_p * student_t.pdf(q, df) * c)
     return float(var), float(es)
 
+def parametric_var_es(mu_p, sigma_p, dist, df=7.0, alpha=0.99):
+    """
+    Closed-form parametric VaR/ES for portfolio returns.
+
+    mu_p : Mean return.
+    sigma_p : Standard deviation of returns.
+    dist : Distribution assumption: "normal" or "student".
+    df : Degrees of freedom for Student-t (only used if dist="student").
+    alpha : Confidence level.
+
+    Returns: (var, es) where
+        var : Value-at-Risk
+        es : Expected Shortfall
+    """
+    if dist == "normal":
+        return parametric_var_es_normal(mu_p, sigma_p, alpha)
+    
+    if dist == "student":
+        return parametric_var_es_student(mu_p, sigma_p, df, alpha)
+    
+    else: raise ValueError(f"Unsupported distribution '{dist}'. Use 'normal' or 'student'.")
+
 # mc version 
 def simulate_mc_portfolio_returns(
     mu, Sigma, weights,
@@ -69,19 +91,18 @@ def simulate_mc_portfolio_returns(
     """
     Simulate *portfolio* log-returns over a horizon using multivariate draws.
 
-    Args:
-        mu, Sigma   : vector (N,), matrix (N,N) of daily *log-return* parameters
-        weights     : (N,) portfolio weights (sum to 1 typically)
-        n_sims      : number of Monte Carlo scenarios
-        horizon_days: number of trading days to aggregate
-        dist        : 'normal' or 'student' (multivariate t via Gaussian mixture)
-        df          : degrees of freedom for student-t (typ. 5-10)
-        antithetic  : if True, half draws are mirrored to reduce variance
-        seed        : RNG seed (int) for reproducibility
+    mu, Sigma   : vector (N,), matrix (N,N) of daily *log-return* parameters
+    weights     : (N,) portfolio weights (sum to 1 typically)
+    n_sims      : number of Monte Carlo scenarios
+    horizon_days: number of trading days to aggregate
+    dist        : 'normal' or 'student' (multivariate t via Gaussian mixture)
+    df          : degrees of freedom for student-t (typ. 5-10)
+    antithetic  : if True, half draws are mirrored to reduce variance
+    seed        : RNG seed (int) for reproducibility
 
-    Returns:
-        samples: np.ndarray shape (n_sims,) of portfolio log-returns over horizon
+    Returns: np.ndarray shape (n_sims,) of portfolio log-returns over horizon
     """
+    
     rng = np.random.default_rng(seed)
     mu = np.asarray(mu, dtype=float).reshape(-1)
     Sigma = np.asarray(Sigma, dtype=float)
@@ -133,6 +154,7 @@ def simulate_mc_portfolio_returns(
 
     return samples
 
+
 def var_es_from_samples(samples, alpha=0.99):
     """
     Compute empirical VaR and ES from simulated *log-return* samples.
@@ -142,7 +164,7 @@ def var_es_from_samples(samples, alpha=0.99):
         ES_alpha  = -mean(samples[samples <= quantile_alpha])
     """
     samples = np.asarray(samples, dtype=float).reshape(-1)
-    q = np.quantile(samples, 1.0 - (1.0 - alpha))  # == quantile at alpha
+    q = np.quantile(samples, alpha)  # == quantile at alpha
     var = -float(q)
     tail = samples[samples <= q]
     es = -float(tail.mean()) if tail.size else var
