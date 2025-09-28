@@ -83,7 +83,7 @@ def simulate_mc_portfolio_returns(
     mu, Sigma, weights,
     n_sims=100_000,
     horizon_days=1,
-    dist="normal",    # "normal" or "student"
+    dist="student",    # "normal" or "student"
     df=7.0,           # used if dist == "student"
     antithetic=True,
     seed=None,
