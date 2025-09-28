@@ -103,7 +103,7 @@ def ensure_posdef(Sigma, jitter=1e-10, max_tries=6):
 
 
 # here we have the big bad callable 
-def estimate_mean_cov(returns, cov_method="standard", lam=0.94, shrinkage_alpha=None, ddof=1):
+def estimate_mean_cov(returns, cov_method="ewma", lam=0.94, shrinkage_alpha=None, ddof=1):
     """
     Estimate mean vector and covariance matrix.
     

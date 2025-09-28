@@ -89,7 +89,7 @@ def simulate_mc_portfolio_returns(
     seed=None,
 ):
     """
-    Simulate *portfolio* log-returns over a horizon using multivariate draws.
+    Simulate portfolio log-returns over a horizon using multivariate draws.
 
     mu, Sigma   : vector (N,), matrix (N,N) of daily *log-return* parameters
     weights     : (N,) portfolio weights (sum to 1 typically)
@@ -164,7 +164,8 @@ def var_es_from_samples(samples, alpha=0.99):
         ES_alpha  = -mean(samples[samples <= quantile_alpha])
     """
     samples = np.asarray(samples, dtype=float).reshape(-1)
-    q = np.quantile(samples, alpha)  # == quantile at alpha
+    quant = 1 - alpha
+    q = np.quantile(samples, quant)  # == quantile at alpha
     var = -float(q)
     tail = samples[samples <= q]
     es = -float(tail.mean()) if tail.size else var

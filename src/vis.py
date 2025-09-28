@@ -34,7 +34,7 @@ def csv_graph(directory="data/AAPL_SIM.csv", type="returns"):
 
     plt.show()
 
-csv_graph(directory="data/T3STstock.csv")
+csv_graph("data/18msynthstock.csv", type="returns")
 
 
 

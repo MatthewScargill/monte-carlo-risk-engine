@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
-
 from calibration import *
 from var_es import *
 
-df = pd.read_csv("data/AAPL_SIM.csv", parse_dates=["Date"]).set_index("Date")
+df = pd.read_csv("data/18msynthstock.csv", parse_dates=["Date"]).set_index("Date")
 # load in CSVs and run calibrate
 prices = df[["Adj Close"]]          # shape (T, 1)
 rets = to_returns(prices, method="log")
