@@ -32,7 +32,10 @@ def csv_graph(directory="data/AAPL_SIM.csv", type="returns"):
     plt.grid(True)
     plt.tight_layout()
 
+    #plt.savefig('examplereturnsprogression.png')
     plt.show()
+    
+
 
 csv_graph("data/18msynthstock.csv", type="returns")
 
