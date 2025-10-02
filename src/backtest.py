@@ -6,34 +6,43 @@ from scipy.stats import chi2
 import numpy as np
 
 
+# precomputed stuff
+
 weights= np.array([1.0])
-
-# basic var backtest, returns number of exceptions where real life was worse than prediction
-def var_backtest():
-
-
-    # this produces all the returns for the whole dataset 
-    df = pd.read_csv("data/18msynthstock.csv", parse_dates=["Date"]).set_index("Date")
-    # load in CSVs and run calibrate
-    prices = df[["Adj Close"]]          # shape (T, 1)
-    returns = to_returns(prices, method="log")
+# this produces all the returns for the whole dataset 
+df = pd.read_csv("data/18msynthstock.csv", parse_dates=["Date"]).set_index("Date")
+# load in CSVs and run calibrate
+prices = df[["Adj Close"]]          # shape (T, 1)
+returns = to_returns(prices, method="log")
 
 
-    #print(returns)
+def var_backtest(returns, train_size):
+    """
+    Trains over *train_size* days and implements rolling 99% var backtest over the remaining days in the
+    csv
 
-    # this is setting up the required data
-    train_size = 50
+    - returns: DataFrame of returns (T x N)
+    - train_size: number of days the model is trained on before beginning rolling backtest
+
+    Returns: (exceptions, test tize) where:
+        - exceptions: number of times where real life was worse than prediction
+        - training days: number of days in the rolling backtest
+    """
+
+    # initialise number of tested days and number of exceptions
     test_size = len(returns) - train_size
     exceptions = 0
 
+    # check number of training days shorter than available data
     assert train_size < len(returns)
 
+    # loop over remaining days in the data set 
     for t in range(train_size, len(returns)):
 
         # Training window = first t rows
         train_window = returns.iloc[:t]     # grows each loop
 
-        # Estimate mean & stdev from training window
+        # Estimate mean & sigma from training window
         mu, sigma = estimate_mean_cov(train_window)
 
         # MC samples
@@ -42,18 +51,22 @@ def var_backtest():
         # 99% confidence var and es for next day
         var, es = var_es_from_samples(samples)
 
+        # checking against confidence
         lim = - returns.iloc[t,0]
         if var < lim:
             exceptions += 1
+
     return exceptions, test_size
 
-
-x, N = var_backtest()
+# checking
+x, N = var_backtest(returns, 50)
 print(x)
 
 # when you set the training size to low you can get an error
 # stays 0 for more, ---> conservative model
 # also at 50 you can see student dist perform better 
+
+# ---------------------------------------------------------------------------------------------------------
 
 
 

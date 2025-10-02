@@ -103,14 +103,19 @@ def simulate_mc_portfolio_returns(
     Returns: np.ndarray shape (n_sims,) of portfolio log-returns over horizon
     """
     
+    # seed for reproducibility
     rng = np.random.default_rng(seed)
+
+    # organise relevant arrays
     mu = np.asarray(mu, dtype=float).reshape(-1)
     Sigma = np.asarray(Sigma, dtype=float)
     w = np.asarray(weights, dtype=float).reshape(-1)
 
+    # checking array sizes
     if mu.shape[0] != Sigma.shape[0] or Sigma.shape[0] != Sigma.shape[1] or w.shape[0] != mu.shape[0]:
         raise ValueError("Shapes mismatch: mu (N,), Sigma (N,N), weights (N,) required.")
 
+    # bookkeeping
     L = ensure_posdef(Sigma)
 
     # Antithetic control: generate m draws and mirror to make ~2m total
@@ -137,7 +142,6 @@ def simulate_mc_portfolio_returns(
         return x
 
     # Aggregate over horizon: sum log-returns across days
-    # (Assumes i.i.d daily draws conditional on params)
     total = np.zeros((m, len(mu)))
     for _ in range(int(horizon_days)):
         total += draw_day(m)
