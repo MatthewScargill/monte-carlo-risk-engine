@@ -37,7 +37,7 @@ def csv_graph(directory="data/AAPL_SIM.csv", type="returns"):
     
 
 
-csv_graph("data/18msynthstock.csv", type="returns")
+csv_graph("data/18msynthstock.csv", type="prices")
 
 
 
